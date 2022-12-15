@@ -1,9 +1,13 @@
-Simple `gh` extension to `clone` and `cd` into a repository.
+Simple `gh` extension to `clone` and `cd` into a repository or 'repo create'.
 
 # 🏃 Getting started
-To start using it, just clone the repository, run `go build` and then `gh extension install .`
+To start using it, just clone the repository, run
+```bash
+gh ext install dyne/gh-cd
+```
 
-Now, as soon as you run `gh cd [account] [repository]` the command will create a new repository at `github.com/account/repository` (if it doesn't exists), clone it locally and `cd` into it.
+Now, as soon as you run `gh cd [account] [repository]` the command will create a new repository at `github.com/account/repository` (if it doesn't exists), otherwise will clone it locally and `cd` into it.
+If the repo is already cloned, it simply `cd` to the directory.
 
 # 👷 Config
 Configuratin happen through the file `~/.gitconfig`, in the section `gh-cd`. There are two possible keys:
