@@ -6,22 +6,22 @@ import (
 	"os/exec"
 
 	"github.com/cli/go-gh"
-	"path"
-	"log"
 	"gopkg.in/ini.v1"
+	"log"
+	"path"
 )
 
 type Config struct {
-  account  string
-  repo     string
-  protocol string
-  baseDir  string
+	account  string
+	repo     string
+	protocol string
+	baseDir  string
 }
 
 func (cfg *Config) loadINI() {
 	dirname, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal( err )
+		log.Fatal(err)
 	}
 	cfgIni, err := ini.Load(path.Join(dirname, ".gitconfig"))
 	if err != nil {
@@ -54,9 +54,9 @@ func detectShell() string {
 	if shell != "" {
 		return shell
 	}
-//  	if runtime.GOOS == "windows" {
-//  		return os.Getenv("COMSPEC")
-//  	}
+	//  	if runtime.GOOS == "windows" {
+	//  		return os.Getenv("COMSPEC")
+	//  	}
 	return "/bin/sh"
 }
 
@@ -74,9 +74,9 @@ func runShell(path string) error {
 
 func runGH(config Config) {
 	if _, err := os.Stat(config.baseDir); os.IsNotExist(err) {
-		    if err := os.Mkdir(config.baseDir, os.ModePerm); err != nil {
-			    log.Fatal(err)
-		    }
+		if err := os.Mkdir(config.baseDir, os.ModePerm); err != nil {
+			log.Fatal(err)
+		}
 	}
 	directory := config.getBaseDir()
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
@@ -113,7 +113,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	response := struct {Login string}{}
+	response := struct{ Login string }{}
 	err = client.Get("user", &response)
 	if err != nil {
 		fmt.Println(err)
@@ -124,9 +124,9 @@ func main() {
 		log.Fatal(err)
 	}
 	config := Config{
-		account: response.Login,
+		account:  response.Login,
 		protocol: "ssh",
-		baseDir: path.Join(dirname, "repo"),
+		baseDir:  path.Join(dirname, "repo"),
 	}
 	config.loadINI()
 
