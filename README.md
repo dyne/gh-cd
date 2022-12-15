@@ -7,5 +7,5 @@ Now, as soon as you run `gh cd [account] [repository]` the command will create a
 
 # 👷 Config
 Configuratin happen through the file `~/.gitconfig`, in the section `gh-cd`. There are two possible keys:
-- `basedir`: the path in which we will clone the repository
+- `basedir`: the absolute path in which we will clone the repository
 - `protocol`: which can be `ssh` or `https`
