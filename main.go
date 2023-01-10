@@ -16,6 +16,7 @@ type Config struct {
 	repo     string
 	protocol string
 	baseDir  string
+	createRepo   bool
 }
 
 func (cfg *Config) loadINI() {
@@ -32,9 +33,15 @@ func (cfg *Config) loadINI() {
 		cfg.baseDir = baseDir
 	}
 	protocol := cfgIni.Section("gh-cd").Key("protocol").String()
+	fmt.Println(protocol)
 	if protocol != "" {
 		cfg.protocol = protocol
 	}
+	createRepo, err := cfgIni.Section("gh-cd").Key("create-repo").Bool()
+	if err == nil {
+		cfg.createRepo = createRepo
+	}
+
 }
 
 func (cfg Config) getBaseDir() string {
@@ -61,7 +68,7 @@ func detectShell() string {
 }
 
 func runShell(path string) error {
-	fmt.Println("Running shell in repo")
+	fmt.Println("🍻 Running shell in repo")
 	cmd := exec.Command(detectShell())
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -80,11 +87,15 @@ func runGH(config Config) {
 	}
 	directory := config.getBaseDir()
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
-		// Try to create a repo (if it exists the command fails)
-		repo := fmt.Sprintf("%s/%s", config.account, config.repo)
-		_, _, err := gh.Exec("repo", "create", repo, "--public")
-		if err != nil {
-			fmt.Println("❌ Repository not created")
+		if config.createRepo {
+			// Try to create a repo (if it exists the command fails)
+			repo := fmt.Sprintf("%s/%s", config.account, config.repo)
+			_, _, err := gh.Exec("repo", "create", repo, "--public")
+			if err != nil {
+				fmt.Println("❌ Repository not created")
+			} else {
+				fmt.Println("✅ Repository created")
+			}
 		}
 		var url string
 
@@ -128,6 +139,7 @@ func main() {
 		account:  response.Login,
 		protocol: "ssh",
 		baseDir:  path.Join(dirname, "repo"),
+		createRepo: true,
 	}
 	config.loadINI()
 

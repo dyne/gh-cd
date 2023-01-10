@@ -13,3 +13,4 @@ If the repo is already cloned, it simply `cd` to the directory.
 Configuratin happen through the file `~/.gitconfig`, in the section `gh-cd`. There are two possible keys:
 - `basedir`: the absolute path in which we will clone the repository
 - `protocol`: which can be `ssh` or `https`
+- `create-repo`: create repo if it doesn't exist
