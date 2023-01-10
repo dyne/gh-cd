@@ -84,7 +84,7 @@ func runGH(config Config) {
 		repo := fmt.Sprintf("%s/%s", config.account, config.repo)
 		_, _, err := gh.Exec("repo", "create", repo, "--public")
 		if err != nil {
-			log.Println(err)
+			fmt.Println("❌ Repository not created")
 		}
 		var url string
 
@@ -94,14 +94,15 @@ func runGH(config Config) {
 			url = config.httpsUrl()
 		} else {
 			fmt.Println(config.protocol)
-			fmt.Println("GH_PROTO must be https or ssh")
+			fmt.Println("❓ GH_PROTO must be https or ssh")
 			os.Exit(-1)
 		}
 
 		// Now clone it
+		fmt.Println("⏳ Please wait...")
 		gh.Exec("repo", "clone", url, directory, "--", "--recursive")
 		if _, err := os.Stat(directory); os.IsNotExist(err) {
-			fmt.Println("Could not clone repository")
+			fmt.Println("🛑 Could not clone repository")
 			os.Exit(-1)
 		}
 	}
