@@ -9,6 +9,7 @@ import (
 	"gopkg.in/ini.v1"
 	"log"
 	"path"
+	"strings"
 )
 
 type Config struct {
@@ -17,6 +18,7 @@ type Config struct {
 	protocol   string
 	baseDir    string
 	createRepo bool
+	shellCmd   []string
 }
 
 func (cfg *Config) loadINI() {
@@ -28,18 +30,26 @@ func (cfg *Config) loadINI() {
 	if err != nil {
 		return
 	}
-	baseDir := cfgIni.Section("gh-cd").Key("basedir").String()
+	section := cfgIni.Section("gh-cd")
+	baseDir := section.Key("basedir").String()
 	if baseDir != "" {
 		cfg.baseDir = baseDir
 	}
-	protocol := cfgIni.Section("gh-cd").Key("protocol").String()
+	protocol := section.Key("protocol").String()
 	fmt.Println(protocol)
 	if protocol != "" {
 		cfg.protocol = protocol
 	}
-	createRepo, err := cfgIni.Section("gh-cd").Key("create-repo").Bool()
+	createRepo, err := section.Key("create-repo").Bool()
 	if err == nil {
 		cfg.createRepo = createRepo
+	}
+	shellCmd := section.Key("shell-cmd").String()
+	if shellCmd != "" {
+		splitFn := func(c rune) bool {
+			return c == ' '
+		}
+		cfg.shellCmd = strings.FieldsFunc(shellCmd, splitFn)
 	}
 
 }
@@ -67,13 +77,19 @@ func detectShell() string {
 	return "/bin/sh"
 }
 
-func runShell(path string) error {
+func runShell(config Config) error {
+	var cmdStr []string
+	if len(config.shellCmd) > 0 {
+		cmdStr = config.shellCmd
+	} else {
+		cmdStr = []string{detectShell()}
+	}
 	fmt.Println("🍻 Running shell in repo")
-	cmd := exec.Command(detectShell())
+	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Dir = path
+	cmd.Dir = config.getBaseDir()
 	// TODO: detect recursive executions
 	//cmd.Env = append(os.Environ(), "GHQ_LOOK="+filepath.ToSlash(repo.RelPath))
 	return cmd.Run()
@@ -140,6 +156,7 @@ func main() {
 		protocol:   "ssh",
 		baseDir:    path.Join(dirname, "repo"),
 		createRepo: true,
+		shellCmd:   []string{},
 	}
 	config.loadINI()
 
@@ -154,6 +171,6 @@ func main() {
 	}
 
 	runGH(config)
-	runShell(config.getBaseDir())
+	runShell(config)
 
 }
