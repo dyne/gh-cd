@@ -12,11 +12,11 @@ import (
 )
 
 type Config struct {
-	account  string
-	repo     string
-	protocol string
-	baseDir  string
-	createRepo   bool
+	account    string
+	repo       string
+	protocol   string
+	baseDir    string
+	createRepo bool
 }
 
 func (cfg *Config) loadINI() {
@@ -136,9 +136,9 @@ func main() {
 		log.Fatal(err)
 	}
 	config := Config{
-		account:  response.Login,
-		protocol: "ssh",
-		baseDir:  path.Join(dirname, "repo"),
+		account:    response.Login,
+		protocol:   "ssh",
+		baseDir:    path.Join(dirname, "repo"),
 		createRepo: true,
 	}
 	config.loadINI()
