@@ -36,7 +36,6 @@ func (cfg *Config) loadINI() {
 		cfg.baseDir = baseDir
 	}
 	protocol := section.Key("protocol").String()
-	fmt.Println(protocol)
 	if protocol != "" {
 		cfg.protocol = protocol
 	}
@@ -106,8 +105,7 @@ func runGH(config Config) {
 		if config.createRepo {
 			// Try to create a repo (if it exists the command fails)
 			repo := fmt.Sprintf("%s/%s", config.account, config.repo)
-			_, _, err := gh.Exec("repo", "create", repo, "--public")
-			if err != nil {
+			if _, _, err := gh.Exec("repo", "create", repo, "--public"); err != nil {
 				fmt.Println("❌ Repository not created")
 			} else {
 				fmt.Println("✅ Repository created")
