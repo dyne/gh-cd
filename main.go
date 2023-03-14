@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -105,6 +106,16 @@ func runShell(config Config) error {
 	return cmd.Run()
 }
 
+func promptYN(msg string) bool {
+    s := bufio.NewScanner(os.Stdin)
+    for {
+        fmt.Printf("%s [y/n]: ", msg)
+        s.Scan()
+        input := strings.ToLower(s.Text())
+        return input == "y"
+    }
+}
+
 func runGH(config Config) {
 	if _, err := os.Stat(config.baseDir); os.IsNotExist(err) {
 		if err := os.Mkdir(config.baseDir, os.ModePerm); err != nil {
@@ -113,15 +124,6 @@ func runGH(config Config) {
 	}
 	directory := config.getBaseDir()
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
-		if config.createRepo {
-			// Try to create a repo (if it exists the command fails)
-			repo := fmt.Sprintf("%s/%s", config.account, config.repo)
-			if _, _, err := gh.Exec("repo", "create", repo, "--public"); err != nil {
-				fmt.Println("❌ Repository not created")
-			} else {
-				fmt.Println("✅ Repository created")
-			}
-		}
 		var url string
 
 		if config.protocol == "ssh" {
@@ -134,12 +136,36 @@ func runGH(config Config) {
 			os.Exit(-1)
 		}
 
-		// Now clone it
+		// The directory doesn't exists, try to clone the repo
 		fmt.Println("⏳ Please wait...")
 		gh.Exec("repo", "clone", url, directory, "--", "--recursive")
 		if _, err := os.Stat(directory); os.IsNotExist(err) {
-			fmt.Println("🛑 Could not clone repository")
-			os.Exit(-1)
+			// I could not clone the repository, maybe it doesn't exist online
+
+			userAccepts := func() bool {
+				return promptYN("❓ Could not clone repository, maybe it doesn't exist online, should I try to create it?")
+			}
+
+			if !config.createRepo && !userAccepts() {
+				fmt.Println("🛑 Could not clone repository")
+				os.Exit(-1)
+			}
+
+			// Try to create a repo (if it exists the command fails)
+			repo := fmt.Sprintf("%s/%s", config.account, config.repo)
+			if _, _, err := gh.Exec("repo", "create", repo, "--public"); err != nil {
+				fmt.Println("❌ Repository not created")
+			} else {
+				fmt.Println("✅ Repository created")
+			}
+
+			// Now clone it
+			fmt.Println("⏳ Please wait...")
+			gh.Exec("repo", "clone", url, directory, "--", "--recursive")
+			if _, err := os.Stat(directory); os.IsNotExist(err) {
+				fmt.Println("🛑 Could not clone repository")
+				os.Exit(-1)
+			}
 		}
 	}
 }
