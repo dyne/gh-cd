@@ -107,13 +107,13 @@ func runShell(config Config) error {
 }
 
 func promptYN(msg string) bool {
-    s := bufio.NewScanner(os.Stdin)
-    for {
-        fmt.Printf("%s [y/n]: ", msg)
-        s.Scan()
-        input := strings.ToLower(s.Text())
-        return input == "y"
-    }
+	s := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Printf("%s [y/n]: ", msg)
+		s.Scan()
+		input := strings.ToLower(s.Text())
+		return input == "y"
+	}
 }
 
 func runGH(config Config) {
