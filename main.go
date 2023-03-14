@@ -83,7 +83,18 @@ func runShell(config Config) error {
 	} else {
 		cmdStr = []string{detectShell()}
 	}
-	fmt.Println("🍻 Running shell in repo")
+	if config.repo != "" {
+		fmt.Println("🍻 Running shell in repo")
+	} else {
+		// When running a shell in a repository without cloning,
+		// the directory could not exist
+		if _, err := os.Stat(config.getBaseDir()); os.IsNotExist(err) {
+			if err := os.Mkdir(config.getBaseDir(), os.ModePerm); err != nil {
+				log.Fatal(err)
+			}
+		}
+		fmt.Println("🍻 Running shell")
+	}
 	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -159,7 +170,15 @@ func main() {
 	config.loadINI()
 
 	if len(os.Args) == 2 {
-		config.repo = os.Args[1]
+		accountRepo := strings.Split(os.Args[1], "/")
+		config.account = accountRepo[0]
+		if len(accountRepo) == 1 {
+			config.repo = ""
+		} else if len(accountRepo) == 2 {
+			config.repo = accountRepo[1]
+		} else {
+			log.Fatal("Could not parse ", os.Args[1], ", too many /")
+		}
 	} else if len(os.Args) == 3 {
 		config.account = os.Args[1]
 		config.repo = os.Args[2]
@@ -168,7 +187,9 @@ func main() {
 		os.Exit(-1)
 	}
 
-	runGH(config)
+	if config.repo != "" {
+		runGH(config)
+	}
 	runShell(config)
 
 }
